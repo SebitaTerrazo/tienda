@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Sistema de Ventas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🛒 TechStore</h1>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn active" onclick="cambiarVista('tienda')">Tienda</button>
+                <button class="nav-btn" onclick="cambiarVista('admin')">Panel Admin</button>
+                <button class="carrito-btn" onclick="toggleCarrito()">
+                    🛒 Carrito <span id="carrito-count">(0)</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Vista Tienda -->
+    <div id="tienda-view" class="view active">
+        <div class="container">
+            <div class="hero">
+                <h2>Tecnología de última generación</h2>
+                <p>Los mejores productos al mejor precio</p>
+            </div>
+
+            <div class="filtros">
+                <input type="text" id="busqueda" placeholder="🔍 Buscar productos..." onkeyup="filtrarProductos()">
+                <select id="categoria-filtro" onchange="filtrarProductos()">
+                    <option value="">Todas las categorías</option>
+                </select>
+            </div>
+
+            <div id="productos-grid" class="productos-grid">
+                <div class="loading">Cargando productos...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista Admin -->
+    <div id="admin-view" class="view">
+        <div class="container">
+            <h2 class="section-title">Panel de Administración</h2>
+            
+            <div class="tabs-admin">
+                <button class="tab-admin-btn active" onclick="cambiarTabAdmin('estadisticas')">📊 Estadísticas</button>
+                <button class="tab-admin-btn" onclick="cambiarTabAdmin('ventas')">📋 Ventas</button>
+                <button class="tab-admin-btn" onclick="cambiarTabAdmin('productos')">📦 Productos</button>
+            </div>
+
+            <!-- Estadísticas -->
+            <div id="tab-estadisticas" class="tab-admin-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Ventas</h3>
+                        <div class="stat-value" id="total-ventas">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Ingresos Totales</h3>
+                        <div class="stat-value" id="ingresos-totales">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Productos Vendidos</h3>
+                        <div class="stat-value" id="productos-vendidos">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Producto Popular</h3>
+                        <div class="stat-value" id="producto-popular">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Stock Bajo</h3>
+                        <div class="stat-value" id="stock-bajo">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas -->
+            <div id="tab-ventas" class="tab-admin-content">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Método Pago</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ventas-tbody">
+                            <tr>
+                                <td colspan="7" class="loading">Cargando ventas...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div id="tab-productos" class="tab-admin-content">
+                <button class="btn-primary" onclick="abrirModalProducto()">➕ Nuevo Producto</button>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-tbody">
+                            <tr>
+                                <td colspan="7" class="loading">Cargando productos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrito Lateral -->
+    <div id="carrito-sidebar" class="carrito-sidebar">
+        <div class="carrito-header">
+            <h3>🛒 Mi Carrito</h3>
+            <button class="close-btn" onclick="toggleCarrito()">✕</button>
+        </div>
+        <div id="carrito-items" class="carrito-items">
+            <div class="carrito-vacio">Tu carrito está vacío</div>
+        </div>
+        <div class="carrito-footer">
+            <div class="carrito-total">
+                <strong>Total:</strong>
+                <span id="carrito-total">$0</span>
+            </div>
+            <button class="btn-checkout" onclick="abrirCheckout()">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="cerrarModal('checkout-modal')">✕</span>
+            <h2>Finalizar Compra</h2>
+            <form id="checkout-form" onsubmit="procesarVenta(event)">
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono *</label>
+                    <input type="tel" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección de Envío *</label>
+                    <textarea name="direccion" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago *</label>
+                    <select name="metodo_pago" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="transferencia">Transferencia Bancaria</option>
+                        <option value="mercadopago">Mercado Pago</option>
+                    </select>
+                </div>
+                <div class="checkout-total">
+                    <strong>Total a Pagar:</strong>
+                    <span id="checkout-total">$0</span>
+                </div>
+                <button type="submit" class="btn-submit">Confirmar Compra</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="producto-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="cerrarModal('producto-modal')">✕</span>
+            <h2 id="producto-modal-title">Nuevo Producto</h2>
+            <form id="producto-form" onsubmit="guardarProducto(event)">
+                <input type="hidden" name="id" id="producto-id">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" name="nombre" id="producto-nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción *</label>
+                    <textarea name="descripcion" id="producto-descripcion" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Precio *</label>
+                    <input type="number" name="precio" id="producto-precio" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock *</label>
+                    <input type="number" name="stock" id="producto-stock" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <input type="text" name="categoria" id="producto-categoria" required>
+                </div>
+                <div class="form-group">
+                    <label>URL Imagen *</label>
+                    <input type="url" name="imagen" id="producto-imagen" required onchange="previsualizarImagen()" onblur="previsualizarImagen()">
+                </div>
+                <button type="submit" class="btn-submit">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Venta -->
+    <div id="detalle-venta-modal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close-modal" onclick="cerrarModal('detalle-venta-modal')">✕</span>
+            <h2>Detalle de Venta</h2>
+            <div id="detalle-venta-info" class="detalle-info"></div>
+            <h3>Productos</h3>
+            <div id="detalle-venta-items" class="detalle-items"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
